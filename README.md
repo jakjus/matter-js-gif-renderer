@@ -1,4 +1,5 @@
 ## Matter.js GIF Renderer
+![Badge](https://img.shields.io/github/actions/workflow/status/jakjus/matter-js-gif-renderer/test_and_publish.yaml)
 ![Example](example/myanimated.gif?raw=true)
 ### Introduction
 Node.js package that creates a GIF output of Matter.js engine (instead of within browser). Based on Basic Renderer within Matter.js package for Node.js. Uses `gif-encoder` and `canvas` node packages.
@@ -7,6 +8,13 @@ Node.js package that creates a GIF output of Matter.js engine (instead of within
 ```
 npm i matter-js-gif-renderer
 ```
+
+### Usage
+You can use various GIF Renderer specific options in `Render.create`.
+- `quality` - image quality. `default: 10`
+- `repeat` - 0 for repeat, -1 for no-repeat. `default: 0`
+- `frameDelay` - frame delay in ms. `default: 1000/60`
+- `outputFile` - output file name. `default: 'myanimated.gif'`
 
 ### Example
 Most of the code is from the `matter-js` docs for brevity.
