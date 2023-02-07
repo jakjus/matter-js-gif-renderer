@@ -1,6 +1,6 @@
 {
   "name": "matter-js-gif-renderer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Renderer for Matter.js, that outputs a gif.",
   "main": "src/index.js",
   "scripts": {
@@ -10,6 +10,10 @@
     "gif",
     "matter.js"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jakjus/matter-js-gif-renderer.git"
+  },
   "author": "github.com/jakjus",
   "license": "ISC",
   "dependencies": {
