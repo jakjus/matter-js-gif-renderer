@@ -1,4 +1,5 @@
 ## Matter.js GIF Renderer
+![Example](example/myanimated.gif?raw=true)
 ### Introduction
 Node.js package that creates a GIF output of Matter.js engine (instead of within browser). Based on Basic Renderer within Matter.js package for Node.js. Uses `gif-encoder` and `canvas` node packages.
 
