@@ -10,11 +10,12 @@ npm i matter-js-gif-renderer
 ```
 
 ### Usage
-You can use various GIF Renderer specific options in `Render.create`.
+You can use various GIF Renderer specific options in `Render.create.options`.
 - `quality` - image quality. `default: 10`
 - `repeat` - 0 for repeat, -1 for no-repeat. `default: 0`
 - `frameDelay` - frame delay in ms. `default: 1000/60`
 - `outputFile` - output file name. `default: 'myanimated.gif'`
+- `skipFrames` - amount of frames to skip. `default: 0`
 
 ### Example
 Most of the code is from the `matter-js` docs for brevity.

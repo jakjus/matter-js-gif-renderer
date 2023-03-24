@@ -11,18 +11,14 @@ var Render = {};
 module.exports = { GifRenderer: Render };
 
 var { Common, Composite, Bounds, Events, Vector, Mouse } = require('matter-js');
-const { createCanvas } = require('canvas');
+const { createCanvas, loadImage, Image } = require('canvas');
 const fs = require('fs');
 const GIFEncoder = require('gifencoder');
 
 (function() {
-    var _requestAnimationFrame,
-        _cancelAnimationFrame,
-        encoder;
-        _requestAnimationFrame = async function(callback){ 
-            setTimeout(function() { callback(); }, 5); 
-        };
-
+    var encoder;
+    var stopRender = 0;
+    var skippedFrames = 0;
     Render._goodFps = 30;
     Render._goodDelta = 1000 / 60;
 
@@ -58,7 +54,7 @@ const GIFEncoder = require('gifencoder');
                 width: 800,
                 height: 600,
                 pixelRatio: 1,
-                background: '#14151f',
+                background: '#a3a5b8',
                 wireframeBackground: '#14151f',
                 hasBounds: !!options.bounds,
                 enabled: true,
@@ -83,7 +79,9 @@ const GIFEncoder = require('gifencoder');
                 quality: 10,
                 repeat: 0,
                 frameDelay: 1000/60,
-                outputFile: 'myanimated.gif',
+                outputFile: 'output.gif',
+                // additional params
+                skipFrames: 0,
             }
         };
 
@@ -98,9 +96,6 @@ const GIFEncoder = require('gifencoder');
         encoder.setQuality(render.options.quality); // image quality. 10 is default.
 
 
-        _cancelAnimationFrame = encoder.finish
-
-
         if (render.canvas) {
             render.canvas.width = render.options.width || render.canvas.width;
             render.canvas.height = render.options.height || render.canvas.height;
@@ -110,6 +105,7 @@ const GIFEncoder = require('gifencoder');
         render.engine = options.engine;
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
+        //render.context.antialias = 'gray'
         render.textures = {};
 
         render.bounds = render.bounds || {
@@ -145,11 +141,11 @@ const GIFEncoder = require('gifencoder');
      */
     Render.run = function(render) {
         (function loop(time){
-            render.frameRequestId = _requestAnimationFrame(loop);
-            
-            _updateTiming(render, time);
-
-            Render.world(render, time);
+            if (stopRender) {
+                console.log('render stopped')
+                return;
+            }
+            Render.world(render);
 
             if (render.options.showStats || render.options.showDebug) {
                 Render.stats(render, render.context, time);
@@ -158,6 +154,8 @@ const GIFEncoder = require('gifencoder');
             if (render.options.showPerformance || render.options.showDebug) {
                 Render.performance(render, render.context, time);
             }
+
+            setTimeout(() => loop(), 1)
         })();
     };
 
@@ -167,7 +165,8 @@ const GIFEncoder = require('gifencoder');
      * @param {render} render
      */
     Render.stop = function(render) {
-        _cancelAnimationFrame(render.frameRequestId);
+        stopRender = 1
+        encoder.finish()
     };
 
     /**
@@ -450,12 +449,16 @@ const GIFEncoder = require('gifencoder');
             Render.endViewTransform(render);
         }
 
-        encoder.addFrame(render.context)
         Events.trigger(render, 'afterRender', event);
 
         // log the time elapsed computing this update
         //timing.lastElapsed = Common.now() - startTime;
         timing.lastElapsed = timing.lastElapsed + options.frameDelay;
+        if (skippedFrames < render.options.skipFrames) {
+            skippedFrames++
+            return
+        }
+        encoder.addFrame(render.context)
     };
 
     /**
@@ -737,7 +740,7 @@ const GIFEncoder = require('gifencoder');
                 part = body.parts[k];
 
                 if (!part.render.visible)
-                    continue;
+                    //continue;
 
                 if (options.showSleeping && body.isSleeping) {
                     c.globalAlpha = 0.5 * part.render.opacity;
@@ -746,13 +749,13 @@ const GIFEncoder = require('gifencoder');
                 }
 
                 if (part.render.sprite && part.render.sprite.texture && !options.wireframes) {
-                    // part sprite
-                    var sprite = part.render.sprite,
-                        texture = _getTexture(render, sprite.texture);
+                // part sprite
+                var sprite = part.render.sprite
+
+                    texture = _getTexture(render, sprite.texture);
 
                     c.translate(part.position.x, part.position.y);
                     c.rotate(part.angle);
-
                     c.drawImage(
                         texture,
                         texture.width * -sprite.xOffset * sprite.xScale,
@@ -760,10 +763,10 @@ const GIFEncoder = require('gifencoder');
                         texture.width * sprite.xScale,
                         texture.height * sprite.yScale
                     );
-
                     // revert translation, hopefully faster than save / restore
                     c.rotate(-part.angle);
                     c.translate(-part.position.x, -part.position.y);
+
                 } else {
                     // part polygon
                     if (part.circleRadius) {
